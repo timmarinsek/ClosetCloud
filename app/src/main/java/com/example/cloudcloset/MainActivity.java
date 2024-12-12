@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_PERMISSION = 100;
 
-    private Button btnTakePhoto;
+    private Button btnTakePhoto, btnShowPhotos;
     private ImageView imageView;
     private Uri photoUri;
 
@@ -37,12 +37,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnTakePhoto = findViewById(R.id.btnTakePhoto);
+        btnShowPhotos = findViewById(R.id.btnShowPhotos);
         imageView = findViewById(R.id.imageView);
 
         btnTakePhoto.setOnClickListener(view -> {
             if (checkPermissions()) {
                 takePhoto();
             }
+        });
+
+        btnShowPhotos.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, PhotoGalleryActivity.class);
+            startActivity(intent);
         });
     }
 
@@ -72,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         try {
-            return File.createTempFile(imageFileName, ".jpg", storageDir);
+            return File.createTempFile(imageFileName, "CloudCloset.jpg", storageDir);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -98,7 +104,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
 }
-

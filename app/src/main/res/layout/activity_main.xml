@@ -11,6 +11,13 @@
         android:layout_height="wrap_content"
         android:text="Slikaj oblačilo" />
 
+    <Button
+        android:id="@+id/btnShowPhotos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pokaži oblačila" />
+
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"

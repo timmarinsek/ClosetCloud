@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ClosetTest"
+rootProject.name = "CloudCloset"
 include(":app")
+ 

@@ -1,6 +1,7 @@
 package com.example.cloudcloset;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -16,6 +17,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +33,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_PERMISSION = 100;
 
@@ -31,27 +41,55 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private Uri photoUri;
 
+
+    //PIVK TONE
+    TabLayout tabLayout;
+    ViewPager2 viewPager2;
+    MyViewPagerAdapter myViewPagerAdapter;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btnTakePhoto = findViewById(R.id.btnTakePhoto);
-        btnShowPhotos = findViewById(R.id.btnShowPhotos);
-        imageView = findViewById(R.id.imageView);
+        tabLayout = findViewById(R.id.tab_layout);
+        viewPager2 = findViewById(R.id.view_pager);
+        myViewPagerAdapter = new MyViewPagerAdapter(this);
+        viewPager2.setAdapter(myViewPagerAdapter);
 
-        btnTakePhoto.setOnClickListener(view -> {
-            if (checkPermissions()) {
-                takePhoto();
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                // Update TabLayout when ViewPager2 page changes
+                if (tabLayout.getTabAt(position) != null) {
+                    tabLayout.selectTab(tabLayout.getTabAt(position));
+                }
             }
         });
 
-        btnShowPhotos.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, PhotoGalleryActivity.class);
-            startActivity(intent);
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager2.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
         });
     }
+    //DO TUKI
 
+    /*
     private boolean checkPermissions() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -60,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
 
     private void takePhoto() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -73,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     private File createImageFile() {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
@@ -85,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -92,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
             imageView.setImageURI(photoUri);
         }
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -104,4 +146,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+     */
 }
+

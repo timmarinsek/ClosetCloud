@@ -14,22 +14,18 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PhotoAdapter extends BaseAdapter {
     private Context context;
     private List<File> photos;
 
-    // List of categories you want to move to
-    // You can also fetch this from the fragment if needed.
-    private String[] categories = {
-            "pants",
-            "shirts",
-            "skirts",
-            "suits",
-            "hoodies",
-            "undefined"
-    };
+    // Multi-select fields
+    private boolean selectMode = false;
+    private Set<File> selectedPhotos = new HashSet<>();
 
     public PhotoAdapter(Context context, List<File> photos) {
         this.context = context;
@@ -51,24 +47,99 @@ public class PhotoAdapter extends BaseAdapter {
         return position;
     }
 
-    /**
-     * Update the photos list and refresh.
-     */
+    /** Replace adapter data. */
     public void setPhotos(List<File> newPhotos) {
         this.photos = newPhotos;
+        // Clear selections if any
+        selectedPhotos.clear();
+        notifyDataSetChanged();
+    }
+
+    /** Clear all data from adapter. */
+    public void clear() {
+        photos.clear();
+        selectedPhotos.clear();
+        notifyDataSetChanged();
+    }
+
+    /** Enable/disable multi-selection mode. */
+    public void setSelectMode(boolean enable) {
+        this.selectMode = enable;
+        if (!enable) {
+            // Clear selections if turning off
+            selectedPhotos.clear();
+        }
         notifyDataSetChanged();
     }
 
     /**
-     * Clear all photos from the adapter and refresh.
+     * Delete all selected photos from storage + adapter.
      */
-    public void clear() {
-        photos.clear();
+    public void deleteSelectedPhotos() {
+        if (selectedPhotos.isEmpty()) {
+            Toast.makeText(context, "No photos selected.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int deleteCount = 0;
+        // Copy them so we don't modify the set while iterating
+        List<File> toRemove = new ArrayList<>(selectedPhotos);
+
+        for (File photoFile : toRemove) {
+            if (photoFile.delete()) {
+                photos.remove(photoFile);
+                deleteCount++;
+            }
+        }
+        selectedPhotos.clear();
         notifyDataSetChanged();
+
+        Toast.makeText(context,
+                "Deleted " + deleteCount + " photos.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Move all selected photos to a new category folder.
+     */
+    public void categorizeSelectedPhotos(String category) {
+        if (selectedPhotos.isEmpty()) {
+            Toast.makeText(context, "No photos selected.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File picturesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        if (picturesDir == null) {
+            Toast.makeText(context, "No Pictures directory.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File categoryDir = new File(picturesDir, category);
+        if (!categoryDir.exists()) {
+            categoryDir.mkdirs();
+        }
+
+        int moveCount = 0;
+        List<File> toRemove = new ArrayList<>(selectedPhotos);
+
+        for (File photoFile : toRemove) {
+            File newFile = new File(categoryDir, photoFile.getName());
+            // renameTo() moves the file
+            if (photoFile.renameTo(newFile)) {
+                photos.remove(photoFile);
+                moveCount++;
+            }
+        }
+        selectedPhotos.clear();
+        notifyDataSetChanged();
+
+        Toast.makeText(context,
+                "Moved " + moveCount + " photos to " + category,
+                Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, ViewGroup parent) {
         // Inflate layout if needed
         if (convertView == null) {
             convertView = LayoutInflater.from(context)
@@ -78,92 +149,45 @@ public class PhotoAdapter extends BaseAdapter {
         ImageView imageView = convertView.findViewById(R.id.imageViewItem);
         File photoFile = photos.get(position);
 
-        // Use Glide to load the image from the File
+        // Use Glide for smoother loading (make sure you have placeholder.png or remove .placeholder())
         Glide.with(context)
                 .load(Uri.fromFile(photoFile))
-                .placeholder(R.drawable.placeholder)  // optional placeholder
+                .placeholder(R.drawable.placeholder)
                 .into(imageView);
 
-        // Long-press listener: show dialog to delete or re-categorize
-        convertView.setOnLongClickListener(v -> {
-            showOptionsDialog(photoFile, position);
-            return true; // consume the long-click
+        // If we are in selectMode, tapping toggles selection
+        convertView.setOnClickListener(v -> {
+            if (selectMode) {
+                toggleSelection(photoFile);
+            } else {
+                // Maybe open photo in full screen, or do nothing
+                Toast.makeText(context, "Clicked: " + photoFile.getName(), Toast.LENGTH_SHORT).show();
+            }
         });
+
+        // Highlight selected items (smaller scale, lower alpha, or custom background, etc.)
+        if (selectedPhotos.contains(photoFile)) {
+            convertView.setScaleX(0.95f);
+            convertView.setScaleY(0.95f);
+            convertView.setAlpha(0.7f);
+        } else {
+            convertView.setScaleX(1.0f);
+            convertView.setScaleY(1.0f);
+            convertView.setAlpha(1.0f);
+        }
 
         return convertView;
     }
 
     /**
-     * Show an options dialog on long press: Delete or Categorize
+     * Toggle selection state for one photo.
      */
-    private void showOptionsDialog(File photoFile, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Choose an option")
-                .setItems(new String[]{"Delete", "Categorize"}, (dialog, which) -> {
-                    if (which == 0) {
-                        // Delete
-                        deletePhoto(photoFile, position);
-                    } else if (which == 1) {
-                        // Categorize
-                        showCategoryDialog(photoFile, position);
-                    }
-                })
-                .show();
-    }
-
-    /**
-     * Delete the photo from storage and remove from adapter.
-     */
-    private void deletePhoto(File photoFile, int position) {
-        if (photoFile.delete()) {
-            photos.remove(position);
-            notifyDataSetChanged();
-            Toast.makeText(context, "Deleted.", Toast.LENGTH_SHORT).show();
+    private void toggleSelection(File photoFile) {
+        if (selectedPhotos.contains(photoFile)) {
+            selectedPhotos.remove(photoFile);
         } else {
-            Toast.makeText(context, "Could not delete.", Toast.LENGTH_SHORT).show();
+            selectedPhotos.add(photoFile);
         }
-    }
-
-    /**
-     * Show a dialog with category options to move the file.
-     */
-    private void showCategoryDialog(File photoFile, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Select category")
-                .setItems(categories, (dialog, which) -> {
-                    String selectedCategory = categories[which];
-                    movePhotoToCategory(photoFile, selectedCategory, position);
-                })
-                .show();
-    }
-
-    /**
-     * Physically move the file to the chosen category folder.
-     */
-    private void movePhotoToCategory(File photoFile, String category, int position) {
-        // Get the parent Pictures directory
-        File picturesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        if (picturesDir == null) {
-            Toast.makeText(context, "No Pictures directory.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Create or ensure the subfolder
-        File categoryDir = new File(picturesDir, category);
-        if (!categoryDir.exists()) {
-            categoryDir.mkdirs();
-        }
-
-        // Move the file
-        File newFile = new File(categoryDir, photoFile.getName());
-        boolean success = photoFile.renameTo(newFile);
-        if (success) {
-            // Remove from current adapter list
-            photos.remove(position);
-            notifyDataSetChanged();
-            Toast.makeText(context, "Moved to " + category, Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(context, "Couldn't move file.", Toast.LENGTH_SHORT).show();
-        }
+        notifyDataSetChanged();
     }
 }

@@ -1,5 +1,6 @@
 package com.example.cloudcloset.fragments;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
@@ -7,7 +8,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -21,24 +24,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GalleryFragment extends Fragment {
+    private Spinner spinnerCategory;
     private GridView gridView;
     private PhotoAdapter photoAdapter;
-    private Spinner spinnerCategory;
 
-    // List of subfolder names
-    private String[] categories = {"pants", "shirts", "skirts", "suits", "hoodies", "undefined"};
+    private Button btnSelect, btnDeleteSelected, btnCategorizeSelected;
+    private LinearLayout selectActions;
+
+    // Toggle for multi-select
+    private boolean selectMode = false;
+
+    // Example categories (same as subfolders)
+    private String[] categories = {
+            "pants", "shirts", "skirts", "suits", "hoodies", "undefined"
+    };
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_gallery, container, false);
 
-        // Initialize GridView
-        gridView = view.findViewById(R.id.gridView);
-
-        // Initialize Spinner
+        // Find Views
         spinnerCategory = view.findViewById(R.id.spinnerCategory);
+        gridView = view.findViewById(R.id.gridView);
+        btnSelect = view.findViewById(R.id.btnSelect);
+        btnDeleteSelected = view.findViewById(R.id.btnDeleteSelected);
+        btnCategorizeSelected = view.findViewById(R.id.btnCategorizeSelected);
+        selectActions = view.findViewById(R.id.selectActions);
 
-        // Set up Spinner with category list
+        // Set up Spinner with the categories
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
@@ -47,18 +61,43 @@ public class GalleryFragment extends Fragment {
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(spinnerAdapter);
 
-        // Listen for spinner item selection
+        // When user picks a category from the Spinner
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Reload photos from the selected category
-                String selectedCategory = categories[position];
-                loadPhotos(selectedCategory);
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                // Load photos from the chosen category
+                String selectedCat = categories[position];
+                loadPhotos(selectedCat);
+
+                // Whenever we switch categories, also turn off select mode
+                if (selectMode) {
+                    toggleSelectMode(false);
+                }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                // Handle case where nothing is selected (optional)
+                // no-op
+            }
+        });
+
+        // "Select" button toggles selectMode
+        btnSelect.setOnClickListener(v -> {
+            // Toggle
+            toggleSelectMode(!selectMode);
+        });
+
+        // "Delete Selected" button
+        btnDeleteSelected.setOnClickListener(v -> {
+            if (photoAdapter != null) {
+                photoAdapter.deleteSelectedPhotos();
+            }
+        });
+
+        // "Categorize Selected" button
+        btnCategorizeSelected.setOnClickListener(v -> {
+            if (photoAdapter != null) {
+                showCategoryDialogForMultiple();
             }
         });
 
@@ -66,76 +105,110 @@ public class GalleryFragment extends Fragment {
     }
 
     /**
-     * Load photos from the specified category subfolder.
+     * Enable or disable multi-select mode in the UI and in the adapter.
+     */
+    private void toggleSelectMode(boolean enable) {
+        selectMode = enable;
+        if (selectMode) {
+            // Enter select mode
+            btnSelect.setText("Cancel");
+            selectActions.setVisibility(View.VISIBLE);
+            if (photoAdapter != null) {
+                photoAdapter.setSelectMode(true);
+            }
+        } else {
+            // Exit select mode
+            btnSelect.setText("Select");
+            selectActions.setVisibility(View.GONE);
+            if (photoAdapter != null) {
+                photoAdapter.setSelectMode(false);
+            }
+        }
+    }
+
+    /**
+     * Shows a dialog to pick a category for the selected photos.
+     */
+    private void showCategoryDialogForMultiple() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Select category")
+                .setItems(categories, (dialog, which) -> {
+                    String selectedCategory = categories[which];
+                    if (photoAdapter != null) {
+                        photoAdapter.categorizeSelectedPhotos(selectedCategory);
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Loads all files from the chosen subfolder (category) and shows them in the GridView.
      */
     private void loadPhotos(String category) {
-        // 1. Get the parent directory (e.g. .../Android/data/<package>/files/Pictures)
         File picturesDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         if (picturesDir == null) {
             Toast.makeText(requireContext(), "Pictures directory not found.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 2. If category is NOT "undefined", proceed normally
-        if (!category.equals("undefined")) {
+        // If category is NOT "undefined", just load from that subfolder
+        if (!"undefined".equals(category)) {
             File categoryDir = new File(picturesDir, category);
             if (!categoryDir.exists()) {
                 categoryDir.mkdirs();
             }
-            // Load photos from that subfolder
-            List<File> photos = getPhotoFiles(categoryDir);
+            List<File> photoFiles = getPhotoFiles(categoryDir);
 
-            if (photos.isEmpty()) {
+            if (photoFiles.isEmpty()) {
                 Toast.makeText(requireContext(), "No items in " + category, Toast.LENGTH_SHORT).show();
-                if (photoAdapter != null) {
-                    photoAdapter.clear();
-                }
+                clearOrSetEmptyAdapter();
             } else {
-                updateAdapter(photos);
+                updateAdapterData(photoFiles);
             }
         }
-        // 3. If category IS "undefined", find files that aren’t in the known subfolders
+        // If category IS "undefined", find files that do not belong to known categories
         else {
-            // We'll gather any files that are directly under picturesDir (not in subfolders),
-            // plus any subfolders that are not in the known categories list
-            List<File> allUndefinedFiles = new ArrayList<>();
+            List<File> undefinedFiles = new ArrayList<>();
 
-            // (a) Add all files directly in picturesDir
-            //     (Make sure we skip directories)
+            // (1) Grab all files in the top-level of picturesDir that are not directories
             File[] topLevelFiles = picturesDir.listFiles();
             if (topLevelFiles != null) {
                 for (File f : topLevelFiles) {
                     if (f.isFile()) {
-                        // It's a file directly in the picturesDir, so "undefined"
-                        allUndefinedFiles.add(f);
+                        // This is a file directly under picturesDir, so it's undefined
+                        undefinedFiles.add(f);
                     }
                 }
             }
 
-            // (b) Check every subfolder, if it's not one of the known categories,
-            //     treat it as "undefined"
-            File[] subFolders = picturesDir.listFiles();
-            if (subFolders != null) {
-                for (File folder : subFolders) {
-                    if (folder.isDirectory() && !isKnownCategory(folder.getName())) {
-                        // Add all files from this folder
-                        allUndefinedFiles.addAll(getPhotoFiles(folder));
+            // (2) Scan subfolders. If a folder name is NOT one of the known categories,
+            //     we treat its contents as undefined.
+            File[] allFiles = picturesDir.listFiles();
+            if (allFiles != null) {
+                for (File folder : allFiles) {
+                    if (folder.isDirectory()) {
+                        // Check if this directory is a known category
+                        if (!isKnownCategory(folder.getName())) {
+                            // It's not known, so everything in it is 'undefined'
+                            undefinedFiles.addAll(getPhotoFiles(folder));
+                        }
                     }
                 }
             }
 
-            if (allUndefinedFiles.isEmpty()) {
+            // Show or update the adapter
+            if (undefinedFiles.isEmpty()) {
                 Toast.makeText(requireContext(), "No undefined items found.", Toast.LENGTH_SHORT).show();
-                if (photoAdapter != null) {
-                    photoAdapter.clear();
-                }
+                clearOrSetEmptyAdapter();
             } else {
-                updateAdapter(allUndefinedFiles);
+                updateAdapterData(undefinedFiles);
             }
         }
     }
 
-    // Helper method to check if a subfolder matches a known category
+    /**
+     * Helper to check if a folder name is in our known categories (including 'undefined' itself).
+     */
     private boolean isKnownCategory(String folderName) {
         for (String cat : categories) {
             if (cat.equals(folderName)) {
@@ -145,30 +218,49 @@ public class GalleryFragment extends Fragment {
         return false;
     }
 
-    // Helper to get a list of image files from a given folder
+    /**
+     * Helper to get all files from a given folder (optionally filter by extension).
+     */
     private List<File> getPhotoFiles(File directory) {
-        List<File> photos = new ArrayList<>();
+        List<File> photoFiles = new ArrayList<>();
         File[] files = directory.listFiles();
         if (files != null) {
             for (File f : files) {
                 if (f.isFile()) {
-                    // Optionally, check extension:
+                    // Optionally check extension:
                     // if (f.getName().endsWith(".jpg") || f.getName().endsWith(".png")) ...
-                    photos.add(f);
+                    photoFiles.add(f);
                 }
             }
         }
-        return photos;
+        return photoFiles;
     }
 
-    // Helper to handle adapter logic in one place
-    private void updateAdapter(List<File> photos) {
+    /**
+     * Clears or sets an empty adapter if no photos exist.
+     */
+    private void clearOrSetEmptyAdapter() {
+        if (photoAdapter != null) {
+            photoAdapter.clear();
+        } else {
+            // If adapter was never created, create one with empty list
+            photoAdapter = new PhotoAdapter(requireContext(), new ArrayList<>());
+            gridView.setAdapter(photoAdapter);
+        }
+    }
+
+    /**
+     * Updates the existing adapter or creates a new one with the given list of files.
+     */
+    private void updateAdapterData(List<File> photos) {
         if (photoAdapter == null) {
             photoAdapter = new PhotoAdapter(requireContext(), photos);
             gridView.setAdapter(photoAdapter);
         } else {
-            photoAdapter.setPhotos(photos);  // Replaces data and refreshes
+            photoAdapter.setPhotos(photos);
         }
     }
 
 }
+
+

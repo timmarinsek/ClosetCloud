@@ -1,39 +1,57 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cameraFragmentRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.CameraFragment"
     android:layout_marginTop="50dp">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <!-- Live camera feed -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent" />
 
-        <ImageView
-            android:id="@+id/imageViewPhoto"
-            android:layout_width="match_parent"
-            android:layout_height="550dp"
-            android:layout_margin="16dp"
-            android:layout_centerHorizontal="true"
-            android:scaleType="centerCrop" />
+    <!-- Capture button -->
+    <Button
+        android:id="@+id/btnCapture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Capture"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp" />
+
+    <!-- After capturing, show the photo preview here -->
+    <ImageView
+        android:id="@+id/imgCapturePreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:scaleType="centerCrop" />
+
+    <!-- Controls to confirm or discard the photo -->
+    <LinearLayout
+        android:id="@+id/previewControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp">
 
         <Button
-            android:id="@+id/buttonTakePhoto"
+            android:id="@+id/btnAddToAlbum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/imageViewPhoto"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="-100dp"
-            android:text="Take Photo" />
+            android:text="Add to Album" />
 
-        <TextView
+        <Button
+            android:id="@+id/btnDiscard"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Wardrobe Fragment"
-            android:layout_centerInParent="true"
-            android:textSize="30dp"/>
-
-    </RelativeLayout>
+            android:text="Discard"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
 
 </RelativeLayout>

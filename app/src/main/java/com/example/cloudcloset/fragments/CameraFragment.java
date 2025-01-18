@@ -25,6 +25,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModel;
 
 import com.example.cloudcloset.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -36,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+
 
 import okhttp3.Call;
 import okhttp3.Callback;

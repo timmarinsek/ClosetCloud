@@ -250,12 +250,12 @@ public class WardrobeFragment extends Fragment {
         }
 
         private void scrollNext() {
-            if (imageAdapter == null) return;
-
-            int currentPos = layoutManager.findFirstVisibleItemPosition();
+            int currentPos = layoutManager.findLastVisibleItemPosition();
             int newPos = currentPos + 1;
-            if (newPos < imageAdapter.getItemCount()) {
+            if (newPos < recyclerView.getAdapter().getItemCount()) {
                 recyclerView.smoothScrollToPosition(newPos);
+            } else {
+                Log.d("WardrobeFragment", "No more images to the right (currentPos=" + currentPos + ")");
             }
         }
     }

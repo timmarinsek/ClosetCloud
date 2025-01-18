@@ -24,7 +24,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LifecycleObserver;
 
 import com.example.cloudcloset.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -46,15 +45,11 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-<<<<<<< HEAD
-public class CameraFragment extends Fragment implements LifecycleObserver {
-=======
 /**
  * A fragment that uses CameraX to show a live preview, capture a photo,
  * and optionally remove the background (API usage).
  */
 public class CameraFragment extends Fragment {
->>>>>>> f7e87c9711e320956716871bc338f6edc496fb93
 
     private static final String TAG = "CameraFragment";
 
@@ -67,14 +62,10 @@ public class CameraFragment extends Fragment {
     private boolean isPreviewVisible = false;
     private ImageCapture imageCapture;      // For taking pictures
     private File photoFile;                 // Last captured file
-<<<<<<< HEAD
-    private static boolean isCameraInitialized = false;
-=======
 
     // We'll store the cameraProvider so we can unbind in onPause
     private ProcessCameraProvider cameraProvider;
     private boolean isCameraInitialized = false;
->>>>>>> f7e87c9711e320956716871bc338f6edc496fb93
 
     private static final int REQUEST_PERMISSIONS = 10;
     private final String[] REQUIRED_PERMISSIONS = new String[] {
@@ -154,13 +145,9 @@ public class CameraFragment extends Fragment {
     /**
      * Initialize CameraX and bind the camera use cases: Preview + ImageCapture.
      */
-<<<<<<< HEAD
-    public void startCamera() {
-=======
     private void startCamera() {
         Log.d(TAG, "startCamera called.");
 
->>>>>>> f7e87c9711e320956716871bc338f6edc496fb93
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
@@ -200,30 +187,6 @@ public class CameraFragment extends Fragment {
         }, ContextCompat.getMainExecutor(requireContext()));
     }
 
-<<<<<<< HEAD
-    public void stopCamera() {
-        if (isCameraInitialized) {
-            try {
-                // Pridobi kamerni ponudnik
-                ProcessCameraProvider cameraProvider = ProcessCameraProvider.getInstance(requireContext()).get();
-
-                // Prekini vse povezave s kamero
-                cameraProvider.unbindAll();
-                isCameraInitialized = false; // Označi kamero kot zaustavljeno
-
-                Toast.makeText(requireContext(), "Camera stopped.", Toast.LENGTH_SHORT).show();
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-                Toast.makeText(requireContext(), "Failed to stop camera.", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    /**
-     * Capture a photo using imageCapture.
-     */
-=======
->>>>>>> f7e87c9711e320956716871bc338f6edc496fb93
     private void takePhoto() {
         if (!isCameraInitialized || imageCapture == null) {
             Toast.makeText(requireContext(), "Camera not ready yet.", Toast.LENGTH_SHORT).show();
@@ -258,61 +221,6 @@ public class CameraFragment extends Fragment {
         );
     }
 
-<<<<<<< HEAD
-    private void removeBackground(File inputFile, File outputFile) {
-        OkHttpClient client = new OkHttpClient();
-
-        RequestBody requestBody = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("image_file", inputFile.getName(),
-                        RequestBody.create(inputFile, MediaType.parse("image/jpg")))
-                .addFormDataPart("size", "auto")
-                .build();
-
-        Request request = new Request.Builder()
-                .url("https://api.remove.bg/v1.0/removebg")
-                .addHeader("X-Api-Key", "CY7TSreH3scoHqLNCRakKtrg")
-                .post(requestBody)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(requireContext(), "Failed to process image: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    // Shrani obdelano sliko brez ozadja
-                    byte[] imageBytes = response.body().bytes();
-                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                        fos.write(imageBytes);
-                    }
-
-                    requireActivity().runOnUiThread(() -> {
-                        Uri uri = Uri.fromFile(outputFile);
-                        imgCapturePreview.setImageURI(uri);
-                    });
-                } else {
-                    String errorMessage = response.body() != null ? response.body().string() : "No response body";
-                    int statusCode = response.code(); // Preveri statusno kodo
-                    Log.e("RemoveBG", "API error: " + response.message() + " - Status code: " + statusCode + " - " + errorMessage);
-
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(requireContext(), "API error: " + response.message(), Toast.LENGTH_SHORT).show());
-                }
-            }
-        });
-    }
-
-    /**
-     * Create a temporary file in external pictures folder with timestamp name.
-     */
-=======
->>>>>>> f7e87c9711e320956716871bc338f6edc496fb93
     private File createImageFile() {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "CloudCloset_" + timeStamp + ".jpg";

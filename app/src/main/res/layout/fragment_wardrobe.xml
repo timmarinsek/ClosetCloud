@@ -38,7 +38,7 @@
         <Button
             android:layout_gravity="center"
             android:id="@+id/btnAddSlot"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Add Slot"
             android:layout_marginTop="5dp" />
@@ -47,7 +47,7 @@
         <Button
             android:layout_gravity="center"
             android:id="@+id/btnSaveOutfit"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Save Outfit"
             android:layout_marginTop="1dp" />

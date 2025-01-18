@@ -40,7 +40,7 @@ public class WardrobeFragment extends Fragment {
     private final List<SlotViewHolder> slotHolders = new ArrayList<>();
 
     // Example categories = subfolder names
-    private final String[] categories = {"shirts", "pants", "boots", "hoodies"};
+    private final String[] categories = {"pants", "shirts", "skirts", "suits", "hoodies", "boots", "shoes", "heels", "undefined"};
 
     @Nullable
     @Override

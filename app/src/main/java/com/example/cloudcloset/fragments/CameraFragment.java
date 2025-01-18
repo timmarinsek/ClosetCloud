@@ -25,7 +25,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LifecycleObserver;
 
 import com.example.cloudcloset.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -47,17 +46,18 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class CameraFragment extends Fragment implements LifecycleObserver {
+public class CameraFragment extends Fragment {
 
     private PreviewView viewFinder;
     private Button btnCapture;
     private ImageView imgCapturePreview;
     private LinearLayout previewControls;
     private Button btnAddToAlbum, btnDiscard;
+    private boolean isPreviewVisible = false;
 
     private ImageCapture imageCapture;      // For taking pictures
     private File photoFile;                 // Last captured file
-    private static boolean isCameraInitialized = false;
+    private boolean isCameraInitialized = false;
 
     private static final int REQUEST_PERMISSIONS = 10;
     private final String[] REQUIRED_PERMISSIONS = new String[]{
@@ -110,7 +110,7 @@ public class CameraFragment extends Fragment implements LifecycleObserver {
     /**
      * Initialize CameraX and bind the camera use cases: Preview + ImageCapture.
      */
-    public void startCamera() {
+    private void startCamera() {
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
@@ -144,27 +144,7 @@ public class CameraFragment extends Fragment implements LifecycleObserver {
         }, ContextCompat.getMainExecutor(requireContext()));
     }
 
-    public void stopCamera() {
-        if (isCameraInitialized) {
-            try {
-                // Pridobi kamerni ponudnik
-                ProcessCameraProvider cameraProvider = ProcessCameraProvider.getInstance(requireContext()).get();
 
-                // Prekini vse povezave s kamero
-                cameraProvider.unbindAll();
-                isCameraInitialized = false; // Označi kamero kot zaustavljeno
-
-                Toast.makeText(requireContext(), "Camera stopped.", Toast.LENGTH_SHORT).show();
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-                Toast.makeText(requireContext(), "Failed to stop camera.", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    /**
-     * Capture a photo using imageCapture.
-     */
     private void takePhoto() {
         if (!isCameraInitialized || imageCapture == null) {
             Toast.makeText(requireContext(), "Camera not ready yet.", Toast.LENGTH_SHORT).show();
@@ -210,7 +190,7 @@ public class CameraFragment extends Fragment implements LifecycleObserver {
 
         Request request = new Request.Builder()
                 .url("https://api.remove.bg/v1.0/removebg")
-                .addHeader("X-Api-Key", "CY7TSreH3scoHqLNCRakKtrg")
+                .addHeader("X-Api-Key", "CY7TSreH3scoHqLNCRakKtrg") //key morva spremenit ce zmanka api requestov(trenutno jih mam 39)
                 .post(requestBody)
                 .build();
 
@@ -237,7 +217,7 @@ public class CameraFragment extends Fragment implements LifecycleObserver {
                     });
                 } else {
                     String errorMessage = response.body() != null ? response.body().string() : "No response body";
-                    int statusCode = response.code(); // Preveri statusno kodo
+                    int statusCode = response.code();
                     Log.e("RemoveBG", "API error: " + response.message() + " - Status code: " + statusCode + " - " + errorMessage);
 
                     requireActivity().runOnUiThread(() ->
@@ -335,4 +315,3 @@ public class CameraFragment extends Fragment implements LifecycleObserver {
         }
     }
 }
-

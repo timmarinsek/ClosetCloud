@@ -19,6 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Wardrobe"
+            android:visibility="gone"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_gravity="center"
@@ -35,19 +36,21 @@
 
         <!-- Example: "Add Slot" button (for dynamic slot creation) -->
         <Button
+            android:layout_gravity="center"
             android:id="@+id/btnAddSlot"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Slot"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="5dp" />
 
         <!-- Example: "Save Outfit" button -->
         <Button
+            android:layout_gravity="center"
             android:id="@+id/btnSaveOutfit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Save Outfit"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="1dp" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Top bar: Spinner + "Select" button -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -22,10 +21,11 @@
             android:id="@+id/btnSelect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select" />
+            android:text="Select"
+            android:backgroundTint="@color/primary"
+            android:textColor="@color/on_primary" />
     </LinearLayout>
 
-    <!-- Only visible when multi-select is ON -->
     <LinearLayout
         android:id="@+id/selectActions"
         android:layout_width="match_parent"
@@ -40,14 +40,18 @@
             android:id="@+id/btnDeleteSelected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Delete Selected" />
+            android:text="Delete Selected"
+            android:backgroundTint="@color/error"
+            android:textColor="@color/on_primary" />
 
         <Button
             android:id="@+id/btnCategorizeSelected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Categorize Selected"
-            android:layout_marginStart="16dp" />
+            android:layout_marginStart="16dp"
+            android:backgroundTint="@color/secondary"
+            android:textColor="@color/on_secondary" />
     </LinearLayout>
 
     <GridView
@@ -55,11 +59,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/selectActions"
-        android:columnWidth="120dp"
-        android:gravity="center"
-        android:horizontalSpacing="10dp"
+        android:padding="8dp"
+        android:horizontalSpacing="8dp"
+        android:verticalSpacing="8dp"
         android:numColumns="auto_fit"
+        android:columnWidth="120dp"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="10dp" />
+        android:background="@color/background" />
 
 </RelativeLayout>

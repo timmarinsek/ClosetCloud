@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:layout_marginTop="50dp">
 
-    <!-- Live camera feed -->
+    <!-- Camera preview -->
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
@@ -14,14 +14,19 @@
     <!-- Capture button -->
     <Button
         android:id="@+id/btnCapture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Capture"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="40dp" />
+        android:layout_marginBottom="40dp"
+        android:theme="@style/NoRippleThemeOverlay"
+        android:text=""
+        android:contentDescription="Capture Photo"
+        android:background="@drawable/capture_button_background" />
 
-    <!-- After capturing, show the photo preview here -->
+    <!-- Discard button (moved to top-left corner) -->
+
+    <!-- After capturing, show the photo preview -->
     <ImageView
         android:id="@+id/imgCapturePreview"
         android:layout_width="match_parent"
@@ -48,10 +53,14 @@
 
         <Button
             android:id="@+id/btnDiscard"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Discard"
-            android:layout_marginStart="16dp" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:contentDescription="Discard Photo" />
+
     </LinearLayout>
 
 </RelativeLayout>

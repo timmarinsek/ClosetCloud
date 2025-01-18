@@ -166,7 +166,7 @@ public class CameraFragment extends Fragment {
                         showCapturedPreview(photoFile);
 
                         File outputFile = new File(photoFile.getParent(), photoFile.getName());
-                        removeBackground(photoFile, outputFile);
+                        //removeBackground(photoFile, outputFile);
                     }
 
                     @Override

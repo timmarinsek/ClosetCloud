@@ -73,7 +73,8 @@
             android:text=""
             android:gravity="center"
             android:drawablePadding="4dp"
-            android:theme="@style/NoRippleThemeOverlay"/>
+            android:theme="@style/NoRippleThemeOverlay"
+            />
 
 
 

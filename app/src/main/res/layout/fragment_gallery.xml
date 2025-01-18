@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Top bar (Spinner + Select button) -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -13,9 +14,14 @@
 
         <Spinner
             android:id="@+id/spinnerCategory"
-            android:layout_width="wrap_content"
+            android:layout_width="264dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/spinner_background"
+            android:popupBackground="@color/white"
+            android:padding="8dp"
+            android:dropDownWidth="match_parent" />
 
         <Button
             android:id="@+id/btnSelect"
@@ -24,41 +30,15 @@
             android:text="Select"
             android:backgroundTint="@color/primary"
             android:textColor="@color/on_primary" />
+
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/selectActions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/topBar"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        android:padding="8dp"
-        android:gravity="center_vertical">
-
-        <Button
-            android:id="@+id/btnDeleteSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Delete Selected"
-            android:backgroundTint="@color/error"
-            android:textColor="@color/on_primary" />
-
-        <Button
-            android:id="@+id/btnCategorizeSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Categorize Selected"
-            android:layout_marginStart="16dp"
-            android:backgroundTint="@color/secondary"
-            android:textColor="@color/on_secondary" />
-    </LinearLayout>
-
+    <!-- GridView that starts below the topBar, fills the rest of the screen -->
     <GridView
         android:id="@+id/gridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/selectActions"
+        android:layout_below="@+id/topBar"
         android:padding="8dp"
         android:horizontalSpacing="8dp"
         android:verticalSpacing="8dp"
@@ -66,5 +46,38 @@
         android:columnWidth="120dp"
         android:stretchMode="columnWidth"
         android:background="@color/background" />
+
+    <!-- Selection actions pinned to the bottom; overlays the GridView -->
+    <LinearLayout
+        android:id="@+id/selectActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:padding="8dp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:id="@+id/btnDeleteSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="55dp"
+            android:layout_marginRight="16dp"
+            android:backgroundTint="@color/error"
+            android:drawableTop="@drawable/bin"
+            android:drawablePadding="4dp"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/btnCategorizeSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="55dp"
+
+            android:drawableTop="@drawable/sort"
+            android:layout_marginStart="16dp"
+            android:backgroundTint="@color/secondary"
+            android:textColor="@color/on_secondary" />
+
+    </LinearLayout>
 
 </RelativeLayout>

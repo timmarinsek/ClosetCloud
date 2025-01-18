@@ -55,25 +55,25 @@ public class MainActivity extends AppCompatActivity  implements LifecycleObserve
     ViewPager2 viewPager2;
     MyViewPagerAdapter myViewPagerAdapter;
 
-    /*@Override
+    @Override
     public void onPause() {
         super.onPause();
-        CameraFragment cameraFragment = (CameraFragment) getSupportFragmentManager().findFragmentByTag("CAMERA_FRAGMENT");
+       /*CameraFragment cameraFragment = (CameraFragment) getSupportFragmentManager().findFragmentByTag("CAMERA_FRAGMENT");
         if (cameraFragment != null) {
             cameraFragment.stopCamera();
-        }
+        }*/
 
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        CameraFragment cameraFragment = (CameraFragment) getSupportFragmentManager().findFragmentByTag("CAMERA_FRAGMENT");
+        /*CameraFragment cameraFragment = (CameraFragment) getSupportFragmentManager().findFragmentByTag("CAMERA_FRAGMENT");
         if (cameraFragment != null) {
             cameraFragment.startCamera();
-        }
+        }*/
 
-    }*/
+    }
 
 
 

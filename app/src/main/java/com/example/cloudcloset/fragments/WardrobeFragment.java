@@ -153,7 +153,7 @@ public class WardrobeFragment extends Fragment {
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerCategory.setAdapter(spinnerAdapter);
 
-            // set default selection if found
+            // set default selection
             int index = 0;
             for (int i = 0; i < allCategories.length; i++) {
                 if (allCategories[i].equals(defaultCat)) {
@@ -169,6 +169,11 @@ public class WardrobeFragment extends Fragment {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     String cat = allCategories[position];
                     currentCategory = cat;
+
+                    // IMPORTANT: clear old selected file if the category changes
+                    selectedFilePath = null;
+
+                    // Now load images for the new category
                     loadCategoryImages(cat);
                 }
 
@@ -179,6 +184,7 @@ public class WardrobeFragment extends Fragment {
             // set initial
             currentCategory = defaultCat;
         }
+
 
         public void loadCategoryImages(String category) {
             // just like we did with getPathsFromCategory(...)

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,11 +30,21 @@ import com.example.cloudcloset.R;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class CameraFragment extends Fragment {
 
@@ -132,9 +143,7 @@ public class CameraFragment extends Fragment {
         }, ContextCompat.getMainExecutor(requireContext()));
     }
 
-    /**
-     * Capture a photo using imageCapture.
-     */
+
     private void takePhoto() {
         if (!isCameraInitialized || imageCapture == null) {
             Toast.makeText(requireContext(), "Camera not ready yet.", Toast.LENGTH_SHORT).show();
@@ -155,6 +164,9 @@ public class CameraFragment extends Fragment {
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                         // Show preview
                         showCapturedPreview(photoFile);
+
+                        File outputFile = new File(photoFile.getParent(), photoFile.getName());
+                        removeBackground(photoFile, outputFile);
                     }
 
                     @Override
@@ -163,6 +175,55 @@ public class CameraFragment extends Fragment {
                     }
                 }
         );
+    }
+
+    private void removeBackground(File inputFile, File outputFile) {
+        OkHttpClient client = new OkHttpClient();
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("image_file", inputFile.getName(),
+                        RequestBody.create(inputFile, MediaType.parse("image/jpg")))
+                .addFormDataPart("size", "auto")
+                .build();
+
+        Request request = new Request.Builder()
+                .url("https://api.remove.bg/v1.0/removebg")
+                .addHeader("X-Api-Key", "CY7TSreH3scoHqLNCRakKtrg") //key morva spremenit ce zmanka api requestov(trenutno jih mam 39)
+                .post(requestBody)
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Failed to process image: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    // Shrani obdelano sliko brez ozadja
+                    byte[] imageBytes = response.body().bytes();
+                    try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                        fos.write(imageBytes);
+                    }
+
+                    requireActivity().runOnUiThread(() -> {
+                        Uri uri = Uri.fromFile(outputFile);
+                        imgCapturePreview.setImageURI(uri);
+                    });
+                } else {
+                    String errorMessage = response.body() != null ? response.body().string() : "No response body";
+                    int statusCode = response.code();
+                    Log.e("RemoveBG", "API error: " + response.message() + " - Status code: " + statusCode + " - " + errorMessage);
+
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), "API error: " + response.message(), Toast.LENGTH_SHORT).show());
+                }
+            }
+        });
     }
 
     /**

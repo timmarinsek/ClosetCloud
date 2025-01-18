@@ -61,4 +61,12 @@ dependencies {
     implementation("androidx.camera:camera-view:$cameraXVersion")
     // Optional: for advanced camera effects (HDR, etc.)
     implementation("androidx.camera:camera-extensions:$cameraXVersion")
+
+
+
+    implementation (libs.okhttp)
+    implementation (libs.okio)
+
+
+
 }

@@ -9,6 +9,7 @@ import com.example.cloudcloset.fragments.CalendarFragment;
 import com.example.cloudcloset.fragments.CameraFragment;
 import com.example.cloudcloset.fragments.GalleryFragment;
 import com.example.cloudcloset.fragments.HomeFragment;
+import com.example.cloudcloset.fragments.TryOutFragment;
 import com.example.cloudcloset.fragments.WardrobeFragment;
 
 
@@ -32,6 +33,8 @@ public class MyViewPagerAdapter extends FragmentStateAdapter {
                 return new WardrobeFragment();
             case 4:
                 return new CalendarFragment();
+            case 5:
+                return new TryOutFragment();
             default:
                 return new HomeFragment();
         }
@@ -39,6 +42,6 @@ public class MyViewPagerAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 5; // Total number of tabs
+        return 6; // Total number of tabs
     }
 }

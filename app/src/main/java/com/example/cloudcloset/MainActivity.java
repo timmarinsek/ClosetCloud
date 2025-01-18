@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -24,8 +25,13 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.viewpager.widget.ViewPager;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.example.cloudcloset.fragments.CameraFragment;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +48,7 @@ public class MainActivity extends AppCompatActivity  implements LifecycleObserve
     private ImageView imageView;
     private Uri photoUri;
 
+    private CameraFragment cameraFragment;
 
     //PIVK TONE
     TabLayout tabLayout;
@@ -49,19 +56,26 @@ public class MainActivity extends AppCompatActivity  implements LifecycleObserve
     MyViewPagerAdapter myViewPagerAdapter;
 
     @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
+        CameraFragment cameraFragment = (CameraFragment) getSupportFragmentManager().findFragmentByTag("CAMERA_FRAGMENT");
+        if (cameraFragment != null) {
+            cameraFragment.stopCamera();
+        }
+
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
+        CameraFragment cameraFragment = (CameraFragment) getSupportFragmentManager().findFragmentByTag("CAMERA_FRAGMENT");
+        if (cameraFragment != null) {
+            cameraFragment.startCamera();
+        }
+
     }
+
+
 
 
 
@@ -104,6 +118,8 @@ public class MainActivity extends AppCompatActivity  implements LifecycleObserve
             }
         });
     }
+
+
     //DO TUKI
 
     /*

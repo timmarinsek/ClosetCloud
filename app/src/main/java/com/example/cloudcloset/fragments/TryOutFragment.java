@@ -146,7 +146,7 @@ public class TryOutFragment extends Fragment {
         Request request = new Request.Builder()
                 .url("https://www.ailabapi.com/api/portrait/editing/try-on-clothes")
                 .post(body)
-                .addHeader("ailabapi-api-key", "EHJ4sVUfKpFclV6SBMdkx9Y3fQoLKYAuiT27OIdWgBhwG1vzqF1jo2iQIcxbjXrb")
+                .addHeader("ailabapi-api-key", "6QK1YpC7Qu2W0GXOrb4ZycICASNh8o0faEo32DeFsWxn8TK6EThXcJHrdFjMLl5e")
                 .build();
 
         client.newCall(request).enqueue(new Callback() {
@@ -186,7 +186,7 @@ public class TryOutFragment extends Fragment {
         Request request = new Request.Builder()
                 .url("https://www.ailabapi.com/api/common/query-async-task-result?task_id=" + taskId) // Query using task_id
                 .get()
-                .addHeader("ailabapi-api-key", "EHJ4sVUfKpFclV6SBMdkx9Y3fQoLKYAuiT27OIdWgBhwG1vzqF1jo2iQIcxbjXrb")
+                .addHeader("ailabapi-api-key", "6QK1YpC7Qu2W0GXOrb4ZycICASNh8o0faEo32DeFsWxn8TK6EThXcJHrdFjMLl5e")
                 .build();
 
         client.newCall(request).enqueue(new Callback() {

@@ -196,7 +196,7 @@ public class CameraFragment extends Fragment {
 
         Request request = new Request.Builder()
                 .url("https://api.remove.bg/v1.0/removebg")
-                .addHeader("X-Api-Key", "CY7TSreH3scoHqLNCRakKtrg") //key morva spremenit ce zmanka api requestov(trenutno jih mam 39)
+                .addHeader("X-Api-Key", "9XfSRLY9WH4yu8yD3XvtH8Ca") //key morva spremenit ce zmanka api requestov(trenutno jih mam 39)
                 .post(requestBody)
                 .build();
 

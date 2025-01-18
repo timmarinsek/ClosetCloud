@@ -3,6 +3,7 @@ package com.example.cloudcloset.fragments;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,17 +36,17 @@ public class WardrobeFragment extends Fragment {
     private LinearLayout slotsContainer;
     private Button btnAddSlot, btnSaveOutfit;
 
-    // A list of "slot holders"
+    // Keep track of each slot's view holder
     private final List<SlotViewHolder> slotHolders = new ArrayList<>();
 
-    // Example categories
+    // Example categories = subfolder names
     private final String[] categories = {"shirts", "pants", "boots", "hoodies"};
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container,
-                             Bundle savedInstanceState)
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState)
     {
         View view = inflater.inflate(R.layout.fragment_wardrobe, container, false);
 
@@ -53,17 +54,17 @@ public class WardrobeFragment extends Fragment {
         btnAddSlot = view.findViewById(R.id.btnAddSlot);
         btnSaveOutfit = view.findViewById(R.id.btnSaveOutfit);
 
-        // By default, add 2 slots (one for top, one for bottom).
+        // By default, add 2 slots
         addSlot("shirts");
-        addSlot("pants");
 
+
+        // Add extra slot on click
         btnAddSlot.setOnClickListener(v -> {
-            // Add a new slot with some default category, e.g. "boots"
             addSlot("boots");
         });
 
+        // Save outfit -> gather selected items, show date picker
         btnSaveOutfit.setOnClickListener(v -> {
-            // Gather all selections, ensure each has a selected file
             List<SlotSelection> allSlots = new ArrayList<>();
             for (SlotViewHolder holder : slotHolders) {
                 if (holder.selectedFilePath == null) {
@@ -74,7 +75,6 @@ public class WardrobeFragment extends Fragment {
                 }
                 allSlots.add(new SlotSelection(holder.currentCategory, holder.selectedFilePath));
             }
-            // Now show date picker or do your outfit saving
             showDatePicker(allSlots);
         });
 
@@ -92,10 +92,8 @@ public class WardrobeFragment extends Fragment {
         holder.setupSpinner(categories, initialCategory);
         holder.loadCategoryImages(initialCategory);
 
-        // Add the slotView to the container
+        // Attach the slot's view
         slotsContainer.addView(slotView);
-
-        // Keep track of this slot
         slotHolders.add(holder);
     }
 
@@ -111,7 +109,6 @@ public class WardrobeFragment extends Fragment {
                     long dateMillis = chosen.getTimeInMillis();
 
                     Outfit outfit = new Outfit(slots, dateMillis);
-                    // store outfit
                     OutfitRepository.addOutfit(outfit);
                     Toast.makeText(requireContext(), "Outfit saved!", Toast.LENGTH_SHORT).show();
                 },
@@ -121,78 +118,8 @@ public class WardrobeFragment extends Fragment {
         dialog.show();
     }
 
-    // We'll define an inner class to represent each slot's UI and state
-    private class SlotViewHolder {
-        View rootView;
-        Spinner spinnerCategory;
-        RecyclerView recyclerView;
-        Button btnRemoveSlot;
-
-        String currentCategory;
-        String selectedFilePath; // updated when user selects a file
-
-        public SlotViewHolder(View slotView) {
-            this.rootView = slotView;
-            spinnerCategory = slotView.findViewById(R.id.spinnerCategory);
-            recyclerView = slotView.findViewById(R.id.recyclerSlotImages);
-            btnRemoveSlot = slotView.findViewById(R.id.btnRemoveSlot);
-
-            recyclerView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-
-            btnRemoveSlot.setOnClickListener(v -> {
-                // remove from parent
-                slotsContainer.removeView(rootView);
-                // remove from our list
-                slotHolders.remove(this);
-            });
-        }
-
-        public void setupSpinner(String[] allCategories, String defaultCat) {
-            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(),
-                    android.R.layout.simple_spinner_item, allCategories);
-            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerCategory.setAdapter(spinnerAdapter);
-
-            // set default selection if found
-            int index = 0;
-            for (int i = 0; i < allCategories.length; i++) {
-                if (allCategories[i].equals(defaultCat)) {
-                    index = i;
-                    break;
-                }
-            }
-            spinnerCategory.setSelection(index);
-
-            // Listen for changes
-            spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String cat = allCategories[position];
-                    currentCategory = cat;
-                    loadCategoryImages(cat);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
-
-            // set initial
-            currentCategory = defaultCat;
-        }
-
-        public void loadCategoryImages(String category) {
-            // just like we did with getPathsFromCategory(...)
-            List<String> imagePaths = getPathsFromCategory(category);
-            // create adapter
-            ImageAdapter adapter = new ImageAdapter(imagePaths, path -> {
-                selectedFilePath = path;
-            });
-            recyclerView.setAdapter(adapter);
-        }
-    }
-
     /**
-     * Copy the same logic from earlier to load file paths from a category subfolder.
+     * Helper to load file paths from a subfolder in Pictures/ (like "pants", "shirts", etc.)
      */
     private List<String> getPathsFromCategory(String categoryName) {
         List<String> results = new ArrayList<>();
@@ -214,5 +141,122 @@ public class WardrobeFragment extends Fragment {
         }
         return results;
     }
-}
 
+    /**
+     * Represents one "slot" with:
+     * - Spinner for category
+     * - Remove button
+     * - < / > arrow buttons
+     * - RecyclerView (horizontal)
+     */
+    private class SlotViewHolder {
+        View rootView;
+        Spinner spinnerCategory;
+        RecyclerView recyclerView;
+        Button btnRemoveSlot;
+        Button btnPreviousImage, btnNextImage;
+
+        String currentCategory;
+        String selectedFilePath;
+
+        private LinearLayoutManager layoutManager;
+        private ImageAdapter imageAdapter;
+
+        public SlotViewHolder(View slotView) {
+            this.rootView = slotView;
+
+            spinnerCategory = slotView.findViewById(R.id.spinnerCategory);
+            recyclerView = slotView.findViewById(R.id.recyclerSlotImages);
+            btnRemoveSlot = slotView.findViewById(R.id.btnRemoveSlot);
+
+            btnPreviousImage = slotView.findViewById(R.id.btnPreviousImage);
+            btnNextImage = slotView.findViewById(R.id.btnNextImage);
+
+            // Horizontal layout
+            layoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
+            recyclerView.setLayoutManager(layoutManager);
+
+            // Remove slot
+            btnRemoveSlot.setOnClickListener(v -> {
+                slotsContainer.removeView(rootView);
+                slotHolders.remove(this);
+            });
+
+            // Left arrow
+            btnPreviousImage.setOnClickListener(v -> {
+                Log.d("WardrobeFragment", "Left arrow clicked in category=" + currentCategory);
+                scrollPrevious();
+            });
+
+            // Right arrow
+            btnNextImage.setOnClickListener(v -> {
+                Log.d("WardrobeFragment", "Right arrow clicked in category=" + currentCategory);
+                scrollNext();
+            });
+        }
+
+        public void setupSpinner(String[] allCategories, String defaultCat) {
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(requireContext(),
+                    android.R.layout.simple_spinner_item, allCategories);
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerCategory.setAdapter(spinnerAdapter);
+
+            // set default selection
+            int index = 0;
+            for (int i = 0; i < allCategories.length; i++) {
+                if (allCategories[i].equals(defaultCat)) {
+                    index = i;
+                    break;
+                }
+            }
+            spinnerCategory.setSelection(index);
+
+            // Listen for changes
+            spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    currentCategory = allCategories[position];
+                    // Clear old selection
+                    selectedFilePath = null;
+                    // Reload images
+                    loadCategoryImages(currentCategory);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+
+            currentCategory = defaultCat;
+        }
+
+        public void loadCategoryImages(String category) {
+            List<String> imagePaths = getPathsFromCategory(category);
+            imageAdapter = new ImageAdapter(imagePaths, path -> {
+                selectedFilePath = path;
+            });
+            recyclerView.setAdapter(imageAdapter);
+
+            Log.d("WardrobeFragment", "Loaded " + imagePaths.size() + " images for category=" + category);
+        }
+
+        private void scrollPrevious() {
+            int currentPos = layoutManager.findFirstVisibleItemPosition();
+            int newPos = currentPos - 1;
+            if (newPos >= 0) {
+                recyclerView.smoothScrollToPosition(newPos);
+            } else {
+                Log.d("WardrobeFragment", "No more images to the left (currentPos=" + currentPos + ")");
+            }
+        }
+
+        private void scrollNext() {
+            if (imageAdapter == null) return;
+
+            int currentPos = layoutManager.findFirstVisibleItemPosition();
+            int newPos = currentPos + 1;
+            if (newPos < imageAdapter.getItemCount()) {
+                recyclerView.smoothScrollToPosition(newPos);
+            }
+        }
+    }
+}

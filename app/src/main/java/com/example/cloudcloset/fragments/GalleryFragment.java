@@ -36,7 +36,7 @@ public class GalleryFragment extends Fragment {
 
     // Example categories (same as subfolders)
     private String[] categories = {
-            "pants", "shirts", "skirts", "suits", "hoodies", "undefined"
+            "pants", "shirts", "skirts", "suits", "hoodies", "boots", "undefined"
     };
 
     @Override

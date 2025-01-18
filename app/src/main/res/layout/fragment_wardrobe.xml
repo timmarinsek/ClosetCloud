@@ -1,15 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nestedScrollViewWardrobe"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.WardrobeFragment">
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- This LinearLayout is the main container -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wardrobe Fragment"
-        android:layout_centerInParent="true"
-        android:textSize="30dp"/>
+        android:orientation="vertical"
+        android:padding="16dp">
 
-</RelativeLayout>
+        <!-- Optional title -->
+        <TextView
+            android:id="@+id/tvWardrobeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wardrobe"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:padding="8dp" />
+
+        <!-- slotsContainer: place where you can dynamically add slot rows
+             (each slot row might contain a spinner + horizontal RecyclerView,
+             or you can place static content here if you prefer) -->
+        <LinearLayout
+            android:id="@+id/slotsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Example: "Add Slot" button (for dynamic slot creation) -->
+        <Button
+            android:id="@+id/btnAddSlot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Slot"
+            android:layout_marginTop="16dp" />
+
+        <!-- Example: "Save Outfit" button -->
+        <Button
+            android:id="@+id/btnSaveOutfit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save Outfit"
+            android:layout_marginTop="16dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

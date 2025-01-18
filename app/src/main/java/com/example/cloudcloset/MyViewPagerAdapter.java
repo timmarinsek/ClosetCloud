@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import com.example.cloudcloset.fragments.CalendarFragment;
 import com.example.cloudcloset.fragments.CameraFragment;
 import com.example.cloudcloset.fragments.GalleryFragment;
 import com.example.cloudcloset.fragments.HomeFragment;
@@ -27,6 +28,10 @@ public class MyViewPagerAdapter extends FragmentStateAdapter {
                 return new CameraFragment();
             case 2:
                 return new GalleryFragment();
+            case 3:
+                return new WardrobeFragment();
+            case 4:
+                return new CalendarFragment();
             default:
                 return new HomeFragment();
         }
@@ -34,6 +39,6 @@ public class MyViewPagerAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 3; // Total number of tabs
+        return 5; // Total number of tabs
     }
 }

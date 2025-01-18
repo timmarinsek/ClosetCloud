@@ -5,14 +5,14 @@
     android:layout_height="match_parent"
     android:layout_marginTop="50dp">
 
-    <!-- Camera preview -->
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Capture button -->
     <Button
+
+
         android:id="@+id/btnCapture"
         android:layout_width="80dp"
         android:layout_height="80dp"
@@ -22,11 +22,12 @@
         android:theme="@style/NoRippleThemeOverlay"
         android:text=""
         android:contentDescription="Capture Photo"
-        android:background="@drawable/capture_button_background" />
+        android:background="@drawable/capture_button_background"
+        />
 
-    <!-- Discard button (moved to top-left corner) -->
 
-    <!-- After capturing, show the photo preview -->
+
+    <!-- After capturing, show the photo preview here -->
     <ImageView
         android:id="@+id/imgCapturePreview"
         android:layout_width="match_parent"
@@ -34,32 +35,47 @@
         android:visibility="gone"
         android:scaleType="centerCrop" />
 
+
     <!-- Controls to confirm or discard the photo -->
     <LinearLayout
+        android:visibility="gone"
         android:id="@+id/previewControls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:visibility="gone"
+
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:layout_marginLeft="20dp"
         android:layout_marginBottom="40dp">
 
-        <Button
-            android:id="@+id/btnAddToAlbum"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add to Album" />
+
 
         <Button
             android:id="@+id/btnDiscard"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginTop="16dp"
-            android:layout_marginStart="16dp"
-            android:contentDescription="Discard Photo" />
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/button_red_circle"
+            android:drawableTop="@drawable/bin"
+            android:text=""
+            android:gravity="center"
+            android:drawablePadding="4dp"
+            android:layout_marginRight="16dp"
+            />
+
+
+        <Button
+            android:id="@+id/btnAddToAlbum"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/button_green_circle"
+            android:drawableTop="@drawable/save"
+            android:text=""
+            android:gravity="center"
+            android:drawablePadding="4dp"
+            android:theme="@style/NoRippleThemeOverlay"/>
+
+
 
     </LinearLayout>
 

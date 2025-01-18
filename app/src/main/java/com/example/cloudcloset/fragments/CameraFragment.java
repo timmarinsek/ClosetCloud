@@ -54,6 +54,7 @@ public class CameraFragment extends Fragment {
     private LinearLayout previewControls;
     private Button btnAddToAlbum, btnDiscard;
 
+    private boolean isPreviewVisible = false;
     private ImageCapture imageCapture;      // For taking pictures
     private File photoFile;                 // Last captured file
     private boolean isCameraInitialized = false;

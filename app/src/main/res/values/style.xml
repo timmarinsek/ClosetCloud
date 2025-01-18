@@ -12,4 +12,14 @@
     <style name="NoRippleThemeOverlay" parent="@style/Theme.AppCompat.Light">
         <item name="android:colorControlHighlight">@android:color/transparent</item>
     </style>
+
+
+
+    <!-- Our custom button style that ensures no Material overlay -->
+    <style name="CircularRedButtonStyle" parent="@style/Widget.AppCompat.Button">
+        <!-- Force our background shape -->
+        <item name="android:background">@drawable/button_red_circle</item>
+        <!-- Remove ripple highlight if you don’t want purple on press -->
+        <item name="android:colorControlHighlight">@android:color/transparent</item>
+    </style>
 </resources>

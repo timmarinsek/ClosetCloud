@@ -14,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.CameraSelector;
@@ -25,7 +24,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModel;
 
 import com.example.cloudcloset.R;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -37,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
-
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -54,19 +51,24 @@ import okhttp3.Response;
  */
 public class CameraFragment extends Fragment {
 
+    private static final String TAG = "CameraFragment";
+
     private PreviewView viewFinder;
     private Button btnCapture;
     private ImageView imgCapturePreview;
     private LinearLayout previewControls;
     private Button btnAddToAlbum, btnDiscard;
-    private boolean isPreviewVisible = false;
 
+    private boolean isPreviewVisible = false;
     private ImageCapture imageCapture;      // For taking pictures
     private File photoFile;                 // Last captured file
+
+    // We'll keep track of the cameraProvider so we can unbind in onPause
+    private ProcessCameraProvider cameraProvider;
     private boolean isCameraInitialized = false;
 
     private static final int REQUEST_PERMISSIONS = 10;
-    private final String[] REQUIRED_PERMISSIONS = new String[]{
+    private final String[] REQUIRED_PERMISSIONS = {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
@@ -75,7 +77,8 @@ public class CameraFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
-                             Bundle savedInstanceState) {
+                             Bundle savedInstanceState)
+    {
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
 
         viewFinder = view.findViewById(R.id.viewFinder);
@@ -90,13 +93,35 @@ public class CameraFragment extends Fragment {
         btnDiscard.setOnClickListener(v -> discardPhoto());
 
         // Check permissions
-        if (allPermissionsGranted()) {
-            startCamera();
-        } else {
+        if (!allPermissionsGranted()) {
             requestPermissions(REQUIRED_PERMISSIONS, REQUEST_PERMISSIONS);
         }
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume called");
+
+        // If permissions are granted and not initialized, start
+        if (allPermissionsGranted() && !isCameraInitialized) {
+            startCamera();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause called. Unbinding camera.");
+
+        // Unbind camera so it stops
+        if (cameraProvider != null) {
+            cameraProvider.unbindAll();
+            cameraProvider = null;
+        }
+        isCameraInitialized = false;
     }
 
     /**
@@ -117,12 +142,18 @@ public class CameraFragment extends Fragment {
      * Initialize CameraX and bind the camera use cases: Preview + ImageCapture.
      */
     private void startCamera() {
+        Log.d(TAG, "startCamera called");
+
         final ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(requireContext());
 
         cameraProviderFuture.addListener(() -> {
+            if (!isAdded()) {
+                Log.d(TAG, "Fragment no longer added, abort camera init");
+                return;
+            }
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                cameraProvider = cameraProviderFuture.get();
 
                 // Preview UseCase
                 Preview preview = new Preview.Builder().build();
@@ -133,7 +164,7 @@ public class CameraFragment extends Fragment {
                         .setTargetRotation(requireActivity().getWindowManager().getDefaultDisplay().getRotation())
                         .build();
 
-                // Select back camera as a default
+                // Select back camera as default
                 CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
                 // Unbind before rebinding
@@ -143,13 +174,13 @@ public class CameraFragment extends Fragment {
                         this, cameraSelector, preview, imageCapture);
 
                 isCameraInitialized = true;
-            } catch (Exception e) {
+                Log.d(TAG, "Camera initialized");
+            } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
                 Toast.makeText(requireContext(), "Failed to start camera.", Toast.LENGTH_SHORT).show();
             }
         }, ContextCompat.getMainExecutor(requireContext()));
     }
-
 
     private void takePhoto() {
         if (!isCameraInitialized || imageCapture == null) {
@@ -196,7 +227,7 @@ public class CameraFragment extends Fragment {
 
         Request request = new Request.Builder()
                 .url("https://api.remove.bg/v1.0/removebg")
-                .addHeader("X-Api-Key", "9XfSRLY9WH4yu8yD3XvtH8Ca") //key morva spremenit ce zmanka api requestov(trenutno jih mam 39)
+                .addHeader("X-Api-Key", "9XfSRLY9WH4yu8yD3XvtH8Ca")
                 .post(requestBody)
                 .build();
 
@@ -204,19 +235,20 @@ public class CameraFragment extends Fragment {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(requireContext(), "Failed to process image: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), "Failed to process image: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
             }
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                if (!isAdded()) return;
                 if (response.isSuccessful()) {
-                    // Shrani obdelano sliko brez ozadja
                     byte[] imageBytes = response.body().bytes();
                     try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                         fos.write(imageBytes);
                     }
-
                     requireActivity().runOnUiThread(() -> {
                         Uri uri = Uri.fromFile(outputFile);
                         imgCapturePreview.setImageURI(uri);
@@ -270,13 +302,7 @@ public class CameraFragment extends Fragment {
      * If you want them to pick a folder (pants, shirts, etc.), show a dialog or spinner here.
      */
     private void addToAlbum() {
-        // For example, let's move the file into a specific subfolder:
-        // "pants", "shirts", "skirts", ... or just keep it where it is.
-        // If you want a dialog, do that here. For simplicity, let's keep the file as is.
-
         Toast.makeText(requireContext(), "Photo saved to " + photoFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-
-        // Return to camera preview after saving
         resetCameraPreview();
     }
 
@@ -286,7 +312,7 @@ public class CameraFragment extends Fragment {
     private void discardPhoto() {
         if (photoFile != null && photoFile.exists()) {
             boolean deleted = photoFile.delete();
-            // Optionally show a toast
+            Log.d(TAG, "discardPhoto: file deleted=" + deleted);
         }
         resetCameraPreview();
     }
@@ -310,11 +336,14 @@ public class CameraFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
+                                           @NonNull int[] grantResults)
+    {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_PERMISSIONS) {
             if (allPermissionsGranted()) {
-                startCamera();
+                if (isResumed() && !isCameraInitialized) {
+                    startCamera();
+                }
             } else {
                 Toast.makeText(requireContext(), "Permissions not granted.", Toast.LENGTH_SHORT).show();
             }
